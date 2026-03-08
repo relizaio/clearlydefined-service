@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+
+name: Build Component Container Image And Submit Metadata To ReARM
+
+jobs:
+  build-service:
+    permissions:
+      id-token: write
+    name: Build And Push ClearlyDefined Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: ClearlyDefined Build And Submit Service Release
+        uses: relizaio/rearm-docker-action@5038cf24067c7a71400b633819c3eb97b17aa5c1 # v1.8.0
+        with:
+          registry_username: ${{ secrets.DOCKER_LOGIN }}
+          registry_password: ${{ secrets.DOCKER_TOKEN }}
+          registry_host: registry.relizahub.com
+          image_namespace: registry.relizahub.com/83d27192-7d06-4d01-a5d6-de4839926da2-public
+          image_name: clearlydefined-service
+          rearm_api_id: ${{ secrets.RELIZA_CLEARLYDEFINED_SERVICE_API_ID }}
+          rearm_api_key: ${{ secrets.RELIZA_CLEARLYDEFINED_SERVICE_API_KEY }}
+          rearm_api_url: https://reliza.rearmhq.com
+          path: .
+          enable_sbom: true
+          source_code_sbom_type: 'npm'
+          enable_public_cosign_sigstore: 'true'

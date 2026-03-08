@@ -1,0 +1,37 @@
+# Copyright (c) Microsoft Corporation and others. Licensed under the MIT license.
+# SPDX-License-Identifier: MIT
+
+FROM node:24.14.0-alpine3.23@sha256:7fddd9ddeae8196abf4a3ef2de34e11f7b1a722119f91f28ddf1e99dcafdf114 AS package
+ENV APPDIR=/opt/service
+
+ARG CI_ENV=noci
+ARG GIT_COMMIT=git_commit_undefined
+ARG GIT_BRANCH=git_branch_undefined
+ARG VERSION=not_versioned
+
+RUN mkdir -p ${APPDIR} && addgroup -S apprunner && adduser -S apprunner -G apprunner && chown apprunner:apprunner -R ${APPDIR}
+
+USER apprunner
+
+COPY --chown=apprunner:apprunner .npmrc package*.json /tmp/
+RUN cd /tmp && npm ci --omit=dev
+RUN mkdir -p "${APPDIR}" && cp -a /tmp/node_modules "${APPDIR}"
+
+WORKDIR "${APPDIR}"
+COPY --chown=apprunner:apprunner . "${APPDIR}"
+
+LABEL git_commit=$GIT_COMMIT
+LABEL git_branch=$GIT_BRANCH
+LABEL ci_environment=$CI_ENV
+LABEL org.opencontainers.image.version=$VERSION
+LABEL org.opencontainers.image.vendor="Reliza Incorporated"
+LABEL org.opencontainers.image.title="ClearlyDefined Service build by Reliza"
+LABEL org.opencontainers.image.source="https://github.com/relizaio/clearlydefined-service"
+LABEL org.opencontainers.image.license="MIT"
+LABEL org.opencontainers.image.url="https://rearmhq.com"
+LABEL org.opencontainers.image.base.name="registry.relizahub.com/83d27192-7d06-4d01-a5d6-de4839926da2-public/clearlydefined-service"
+
+ENV PORT 4000
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+EXPOSE 4000 2222
+ENTRYPOINT ["node", "./bin/www"]
