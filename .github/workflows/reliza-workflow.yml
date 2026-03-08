@@ -29,3 +29,4 @@ jobs:
           enable_sbom: true
           source_code_sbom_type: 'npm'
           enable_public_cosign_sigstore: 'true'
+          dockerfile_name: Dockerfile.reliza
